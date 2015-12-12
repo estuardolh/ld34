@@ -6,4 +6,8 @@ ludum dare 34 !
 themes
 - Two button controls, Growing!
 
-- idea.
+== to-do
+ - intro > 50 %
+ - add effects
+ - add obstacles
+ - add target

@@ -157,6 +157,39 @@ engine.map = function( name, width, height ){
 	*/
 	this.update = function(){
 	};
+	
+	/*
+		give an array 2d and push entities into this map
+		
+		@array2d : array 2D with symbols
+			example
+				var arr2d = {};
+				arr2d.an_array = [ ... ];
+				arr2d.w = 1;
+				arr2d.h = 2;
+				
+				OR
+				
+				var arr2d = { an_array: [ ... ], w: 1, h:2 }
+				
+		@delta_x : X space between entities
+		@delta_y : Y space between entities
+		@symbols dictionary({ symbol_0:key_0 , ... , symbol_n:key_n } where symbol is a character and key is an image name )
+	*/
+	this.array_push = function( array2d, delta_x, delta_y, symbols ){
+		
+		var i = 0, j = 0;
+		var column = [];
+		var key;
+		for( ; i < array2d.w ; i ++ ){
+			column = array2d.an_array[i];
+			for( j = 0 ; j < array2d.h ; j ++ ){
+				key = column[j];
+				if( key != null && symbols[ key ] ) this.push( new engine.entity( symbols[ key ], j * delta_x, i * delta_y ) );
+			}
+		}
+		
+	}
 };
 engine.current_map = null;
 engine.setMap = function( map ){
@@ -287,6 +320,17 @@ engine.entity = function Entity(key, x, y){
 		}
 		this.animation_frames.push({ "key":frame_key, "dt": dt });
 	};
+	
+	this.setEffect = function( effect_name, ops ){
+		// -- add animation / frames
+		if( effect_name == "flash" ){
+			// TO DO
+			// ops. time to desappear
+		}else if( effect_name == "distribute" ){
+			// TO DO
+			// ops. object to distribute
+		}
+	}
 	
 	this.draw = function(){
 		if( this.visible == false ) return;
