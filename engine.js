@@ -304,6 +304,7 @@ engine.entity = function Entity(key, x, y){
 	this.friction = 0.05;
 	this.acceleration = 0;
 	this.visible = true;
+	this.top_layered = false;
 	
 	this.animation_frames = [];
 	this.animation_dt = 0;
@@ -335,7 +336,7 @@ engine.entity = function Entity(key, x, y){
 	this.draw = function(){
 		if( this.visible == false ) return;
 		
-		if( engine.viewport.enabled == true ){
+		if( engine.viewport.enabled == true && ! this.top_layered ){
 			var key = this.key;
 			
 			if( this.animation_frames.length > 0 ){
@@ -361,7 +362,7 @@ engine.entity = function Entity(key, x, y){
 					this.animation_running = true;
 				}
 			}else{
-				if( this.angle == 0 ){
+				if( this.angle == -1 ){
 					engine.image.draw( key, this.x - engine.viewport.x, this.y - engine.viewport.y );
 				}else{
 					engine.image.draw( key, this.x - engine.viewport.x, this.y - engine.viewport.y, this.angle, this.w, this.h );
