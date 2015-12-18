@@ -23,8 +23,8 @@ engine.load = function(){
 	engine.image.load("./img/play.png", "button_play");
 	
 	bullet1 = new engine.entity( "bullet1_hover", parseInt(engine.canvas.width / 2), parseInt(engine.canvas.height / 2) );
-	bullet1.w = 48;
-	bullet1.h = 48;
+	bullet1.w = 32;
+	bullet1.h = 32;
 	bullet1.angle = 45;
 	bullet1.magnitude = 2;
 	bullet1.acceleration = 1.00001;
@@ -47,21 +47,23 @@ engine.load = function(){
 		this.dy = engine.math.angle_to_xy( this.angle, this.magnitude )[1];
 		//this.angle = engine.math.xy_to_angle( this.dx, this.dy );
 		
-		if( ( touch_left() || touch_right() )
+		if( ( touch_left() || touch_right()
+			|| click_left() || click_right() )
 			&& this.state == bullet_state.REPOSE ){
 			this.state = bullet_state.GO;
 		}
 		
 		if( this.state == bullet_state.GO ){
-			if( touch_left() ){
+			if( touch_left() || click_left() ){
 				this.angle -= 6.8;
 				this.key = "bullet1_left";
 			}
-			if( touch_right() ){
+			if( touch_right() || click_right() ){
 				this.angle += 6.8;
 				this.key = "bullet1_right";
 			}
-			if( ! touch_left() && ! touch_right() ){
+			if( ( ! touch_left() && ! touch_right() )
+				&& ( ! click_left() && ! click_right() ) ){
 				this.key = "bullet1_hover";
 			}	
 		}
@@ -75,6 +77,7 @@ engine.load = function(){
 	intro1.h = 64;
 	intro1.x = parseInt(engine.canvas.width / 2) - parseInt( intro1.w / 2 );
 	intro1.y = parseInt(engine.canvas.height / 2) - parseInt( intro1.h / 2 );
+	intro1.top_layered = true;
 	
 	intro2 = new engine.entity( "intro2", 0, 0);
 	intro2.w = 64;
@@ -87,18 +90,27 @@ engine.load = function(){
 		}
 	};
 	intro1.update = intro2.update;
+	intro2.top_layered = true;
 	
 	level1 = new engine.map( "level1", 0, 0);
 	var level1_array = {};
 	level1_array.an_array = 
 	[
-		["b", "b", "x", "b"],
-		["b", "x", "b", "x"],
-		["b", "x", "x", "x"],
-		["b", "x", "x", "x"]
+		["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"],
+		["b", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "b", "b", "b", "b", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "b", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "b", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "x", "x", "x", "b", "b", "b"],
+		["b", "x", "b", "x", "x", "x", "x", "x", "x", "b", "x", "b"],
+		["b", "x", "b", "b", "x", "x", "x", "x", "x", "x", "x", "b"],
+		["b", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "b"],
+		["b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b"]
 	];
-	level1_array.w = 4;
-	level1_array.h = 4;
+	level1_array.w = 12;
+	level1_array.h = 12;
 	
 	level1.array_push( level1_array, 48, 48, { "b": "block1" } );
 	
@@ -111,13 +123,13 @@ engine.load = function(){
 };
 engine.draw = function(){
 	bullet1.draw();
+	level1.draw();
 	intro1.draw();
 	intro2.draw();
-	level1.draw();
 	button_pause.draw();
 };
 engine.update = function(){
-	if( touch_playpause() == true ) paused = ! paused;
+	if( touch_playpause() == true || click_playpause() == true ) paused = ! paused;
 	
 	if( paused == true ){
 		if( button_pause.key == "button_pause" ){
@@ -134,24 +146,59 @@ engine.update = function(){
 	intro1.update();
 	intro2.update();
 	
+	process_obstacles();
+	
 	engine.viewport.followTo( bullet1 );
 	engine.viewport.update();
 };
 
 /*
-	touch logic
+	obstacles & target
+*/
+function process_obstacles(){
+	level1.entity_list.forEach( function( item ){
+		if( item.key == "block1" ){
+			if( item.collide( bullet1 ) ){
+				console.log("collide!");
+				
+				return;
+			}
+		}
+	} );
+}
+function process_target(){
+	
+}
+
+/*
+	touch/click logic
 */
 function touch_playpause(){
 	return ( engine.events.touch_x < engine.canvas.width && engine.events.touch_x > engine.canvas.width - button_pause.w
 			&& engine.events.touch_y < engine.canvas.height && engine.events.touch_y > engine.canvas.height - button_pause.h );
 }
 function touch_exclution(){
-	console.log(touch_playpause());
 	return touch_playpause();
 }
+
+function click_playpause(){
+	return ( engine.events.click_x < engine.canvas.width && engine.events.click_x > engine.canvas.width - button_pause.w
+			&& engine.events.click_y < engine.canvas.height && engine.events.click_y > engine.canvas.height - button_pause.h );
+}
+function click_exclution(){
+	return click_playpause();
+}
+
 function touch_left(){
 	return ( engine.events.touch_x < engine.canvas.width / 2 && engine.events.touch_y < engine.canvas.height ) && ( engine.events.touch_x > 0 && engine.events.touch_y > 0 ) && ! touch_exclution();
 }
 function touch_right(){
 	return ( engine.events.touch_x > engine.canvas.width / 2 && engine.events.touch_y < engine.canvas.height ) && ( engine.events.touch_x > 0 && engine.events.touch_y > 0 ) && ! touch_exclution();
+}
+
+function click_right(){
+	return ( engine.events.click_x > engine.canvas.width / 2 && engine.events.click_y < engine.canvas.height ) && ( engine.events.click_x > 0 && engine.events.click_y > 0 ) && ! click_exclution();
+}
+function click_left(){
+	return ( engine.events.click_x < engine.canvas.width / 2 && engine.events.click_y < engine.canvas.height ) && ( engine.events.click_x > 0 && engine.events.click_y > 0 ) && ! click_exclution();
 }
